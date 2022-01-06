@@ -39,20 +39,37 @@ library(sf)
 
 # Load data ---------------------------------------------------------------
 
-  Fraser <- st_read("02_PROCESSED_DATA/Fraser_Watershed_WGS84_Fixed.shp") %>%
-    st_transform(Fraser, crs = 3979)
+  # Note: geometry fixed in QGis prior to loading data
   HYBAS_Fraser <- st_read("02_PROCESSED_DATA/HydroBasin_HUC12_Fraser_Fixed.shp") %>%
     st_transform(Fraser, crs = 3979)
   HYRIV_Fraser <- st_read("02_PROCESSED_DATA/HydroRiver_Fraser_Fixed.shp") %>%
     st_transform(Fraser, crs = 3979)
 
 # Data preparation --------------------------------------------------------
-
-  # Check which watersheds only has Strahler order 1
-  Subset_HYBAS <- HYRIV_Fraser %>%
+  
+  # Separate watersheds that only have Strahler order 1
+  # Create river layer for watersheds with more than Strahler order 1
+  HYRIV_Stral2Plus <- HYRIV_Fraser %>%
+    filter(ORD_STRA > 1) %>%
     group_by(HYBAS_L12) %>%
-    summarise(cnt = n()) %>%
-    filter(cnt == 1)
+    summarise(cnt = n())
   
+  # Tabulate difference between original river layer and river layer for watersheds with more than Strahler order 1
+  Diff_Stral2_Stral1 <- anti_join(st_drop_geometry(HYRIV_Fraser), st_drop_geometry(HYRIV_Stral2Plus)) %>%
+    group_by(HYBAS_L12) %>%
+    summarise(cnt = n())
   
+  # Use previous step to filter original river layer and filter watersheds with only Strahler order 1
+  HYRIV_Stral1 <-  HYRIV_Fraser %>%
+    filter(HYBAS_L12 %in% Diff_Stral2_Stral1$HYBAS_L12)
   
+  # Delete all Strahler order 1 in the original dataset and add back the watersheds with order 1 only
+  HYRIV_Lite <- HYRIV_Fraser %>%
+    filter(ORD_STRA > 1) %>% 
+    bind_rows(HYRIV_Stral1)
+    
+  
+  # ESDA
+  ggplot() +
+    geom_sf(data = HYRIV_Lite, colour = "blue") +
+    geom_sf(data = HYBAS_Fraser, fill = NA)

@@ -1,3 +1,44 @@
+## ---------------------------
+## Script name: 
+##
+## Purpose of script:
+##
+## Author: Dr. François-Nicolas Robinne
+##
+## Date Created: 2022-01-07
+## 
+## Version: 1.0
+##
+## Copyright (c) François-Nicolas Robinne, 2022
+## Email: robinne@ualberta.ca
+##
+## ---------------------------
+## Notes:
+##   
+##
+## ---------------------------
+
+## set working directory ---------------------------
+
+setwd("C:/Users/tim/Google Drive/") 
+
+## general options ---------------------------
+
+options(scipen = 6, digits = 4) # I prefer to view outputs in non-scientific notation
+memory.limit(30000000)     # this is needed on some PCs to increase memory allowance
+
+## load libraries ---------------------------
+
+require(tidyverse)
+require(data.table)
+# source("functions/packages.R")       # loads up all the packages we need
+
+## load functions ---------------------------
+
+# source("functions/summarise_data.R") 
+
+## load data ---------------------------
+
 library(sf)
 library(dplyr)
 library(rgeos)

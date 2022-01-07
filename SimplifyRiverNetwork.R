@@ -7,6 +7,8 @@
 ## Author: Dr. François-Nicolas Robinne
 ##
 ## Date Created: 2021-10-26
+## 
+## Version: 1.0
 ##
 ## Copyright (c) François-Nicolas Robinne, 2021
 ## Email: robinne@ualberta.ca

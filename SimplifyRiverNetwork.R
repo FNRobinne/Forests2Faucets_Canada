@@ -11,27 +11,28 @@
 ## Version: 1.0
 ##
 ## Copyright (c) François-Nicolas Robinne, 2021
-## Email: robinne@ualberta.ca
+## Email: francois.robinne@nrcan-rncan.gc.ca
 ##
 ## ---------------------------
 ## Notes:
-##   
+##   This is part of the project Forest To Faucets - Canada
 ##
 ## ---------------------------
 
 ## set working directory ---------------------------
 
-setwd("D:/PROJECTS/39_2021_CANADA_F2F_SOURCE2TAP_ACTIVE") 
+  setwd("D:/PROJECTS/39_2021_CANADA_F2F_SOURCE2TAP_ACTIVE") 
 
 ## general options ---------------------------
 
-options(scipen = 6, digits = 4) # I prefer to view outputs in non-scientific notation
-memory.limit(30000000)     # this is needed on some PCs to increase memory allowance
+  options(scipen = 6, digits = 4) # I prefer to view outputs in non-scientific notation
+  memory.limit(30000000)     # this is needed on some PCs to increase memory allowance
 
 ## load libraries --------------------------------------------------------
 
-library(tidyverse)
-library(sf)
+  library(tidyverse)
+  library(sf)
+  library(rgdal)
 
 # source("functions/packages.R")       # loads up all the packages we need
 
@@ -44,9 +45,9 @@ library(sf)
 
   # Note: geometry fixed in QGis prior to loading data
   HYBAS_Fraser <- st_read("02_PROCESSED_DATA/HydroBasin_HUC12_Fraser_Fixed.shp") %>%
-    st_transform(Fraser, crs = 3979)
+    st_transform(crs = 3979)
   HYRIV_Fraser <- st_read("02_PROCESSED_DATA/HydroRiver_Fraser_Fixed.shp") %>%
-    st_transform(Fraser, crs = 3979) %>%
+    st_transform(crs = 3979) %>%
     select(HYRIV_ID, ORD_STRA, HYBAS_L12)
 
 # Data processing ---------------------------------------------------------
@@ -70,7 +71,14 @@ library(sf)
   # Delete all Strahler order 1 in the original dataset and add back the watersheds with order 1 only
   HYRIV_Lite <- HYRIV_Fraser %>%
     filter(ORD_STRA > 1) %>% 
-    bind_rows(HYRIV_Stral1)
+    bind_rows(HYRIV_Stral1) %>%
+    group_by(HYBAS_L12) %>%
+    summarize() 
+  
+    # Convert the simplified network to SP format for use in RiverDist
+    HYRIV_Lite_ID <- HYRIV_Lite %>%
+      mutate(ID = row_number())
+    HYRIV_Lite_SP <- as_Spatial(from = HYRIV_Lite_ID)
    
     # ESDA (just checking that process worked)
     ggplot() +
@@ -82,4 +90,5 @@ library(sf)
   # Save clean river network
   # Modify destination path as needed
   st_write(HYRIV_Lite, "02_PROCESSED_DATA/HydroRiver_Fraser_Lite.gpkg", append = F)
-    
+  writeOGR(HYRIV_Lite_SP, getwd(), "HydroRiver_Fraser_RD", driver = "ESRI Shapefile") # Version for RiverDist (sp format)
+  

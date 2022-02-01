@@ -35,6 +35,7 @@
   library(sf)
   library(terra)
   library(exactextractr)
+  library(RColorBrewer)
   
 # source("functions/packages.R")       # loads up all the packages we need
 
@@ -45,20 +46,54 @@
 ## load data ---------------------------
   
   # Beware of CRS => make sure it is the same for all data
+  # National data below were prepared using a GIS software
+  # All were set to EPSG:3979
+  # All rasters are at a 250m pixel resolution
   HUC12 <- st_read("02_PROCESSED_DATA/HydroBasin_HUC12_Fraser_Fixed.shp") %>%
+    st_transform(crs = 3979) %>%
+    select(HYBAS_ID, SUB_AREA, dis_m3_pyr)
+  Intakes <- st_read("02_PROCESSED_DATA/Canada_Municipal_Surface_Intake_V4_28102021.gpkg") %>%
     st_transform(crs = 3979)
-  Intakes <- st_read("02_PROCESSED_DATA/Canada_Municipal_Surface_Intake_V4_28102021.gpkg")
-  CanTreeCover <- rast("NRCAN/NFI_MODIS250m_kNN_LandCover_VegTreed_v0.tif")
+  CanTreeCover <- rast("02_PROCESSED_DATA/NRCAN/CanTreeCover_EPSG3979.tif")
+  CanTreeCover_10[CanTreeCover<10] <- NA
+  WaterYield <- 
+  BurnPro <-
+  FireInt <- 
+  # CanTreeCoverEPSG3979 <- project(x = CanTreeCover, y = "epsg:3979")
   #ConusTreeCover <-
   #AkTreeCover <- 
   
 
 ## data processing -------------------------------------------------------
-
-  # Vector data ----------------------------------------------------------
-
-
-  # Raster data -----------------------------------------------------------
-
   
+  # Raster data masking (using forest cover layer)
+  
+  # Vector data extraction/summary per HUC12
+  HUC12_WatVol <- HUC12 %>%
+    st_join(Intakes) %>%
+    group_by(HYBAS_ID) %>%
+    summarise(TotMunWat = sum(YR_VOL_M3)) 
+  
+  HUC12_WatVol_NoNA <- HUC12_WatVol %>%
+    mutate(TotMunWat = replace_na(TotMunWat,0))
+
+  # Raster data extraction/summary per HUC12
+  HUC12_ForCov <- exact_extract(CanTreeCover_10, HUC12, 'count',
+                                progress = F, append_cols = c('HYBAS_ID')) %>% 
+    rename(forcov = count)
+  HUC12_Forests <- HUC12 %>%
+    right_join(HUC12_ForCov) %>%
+    mutate(forcov_area = (forcov*0.0625)/SUB_AREA*100) %>% # 250*250m equals 0.0625 km²
+    mutate(forcov_area = case_when(
+      forcov_area > 100 ~ 100,
+      TRUE ~ forcov_area))
+
+## Data viz
+  ggplot() +
+    geom_sf(data = HUC12_Forests, aes(fill = forcov_area), color = NA) +
+    scale_fill_distiller(palette = "Greens", trans = "reverse")
     
+  ggplot() +
+    geom_sf(data = HUC12_WatVol_NoNA, aes(fill = TotMunWat)) +
+    scale_fill_distiller(palette = "Blues", trans = "reverse")
+  

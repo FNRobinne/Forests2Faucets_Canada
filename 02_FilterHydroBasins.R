@@ -1,8 +1,8 @@
 ## ---------------------------
-## Script name: 02_FilterHydroBasins.R
+## Script name: 02_FilterHydroBASINS.R
 ##
 ## Purpose of script: Separate inland from coastal HUC12 catchments, also isolate
-##                    catchments without a HydroRIVER segment
+##                    catchments without a HydroRIVERS segment
 ##
 ## Author: Dr. François-Nicolas Robinne
 ##

@@ -1,8 +1,8 @@
 ## ---------------------------
-## Script name: 01_UpdateHydroAtlas.R
+## Script name: 02_FilterHydroBasins.R
 ##
-## Purpose of script: Select from and add new variables to HydroAtlas for F2F-C
-##                    analysis.
+## Purpose of script: Separate inland from coastal HUC12 catchments, also isolate
+##                    catchments without a HydroRIVER segment
 ##
 ## Author: Dr. François-Nicolas Robinne
 ##
@@ -13,19 +13,16 @@
 ## Project: Forest to Faucets Canada
 ##
 ## Copyright (c) François-Nicolas Robinne, 2022
-## Email: francois.robinne@nrcan-rncan.gc.ca
+## Email: francois.robinne@nrcan-rncan.gc.ca / robinne@ualberta.ca
 ##
 ## 
-## Notes: This should better be ran first so all variables are set
-##        It is necessary to have these variables ready to create the composite indicator
-##        They will be attached to the catchment outlets as well
-##        Make sure to keep the field HYBAS_ID => it's the primary key for future spatial and tabular joins
+## Notes: Repaired geometries come from QGIS; it could be done directly in R using
+##        {QGIS Geoprocessing}
 ## 
-
 ## set working directory -------------------------------------------------------
 
 # Update as needed
-setwd("C:/Users/frobinne/OneDrive - NRCan RNCan/Documents/Professionel/PROJECTS/39_2021_CANADA_F2F_SOURCE2TAP_ACTIVE") 
+setwd("C:/Users/frobinne/Documents/Professional/PROJECTS/39_2021_CANADA_F2F_SOURCE2TAP_ACTIVE") 
 
 ## general options -------------------------------------------------------------
 
@@ -54,5 +51,9 @@ hybas_inland_valid <- hybas_inland %>%
 hybas_invalid <- hybas_can %>%
   filter(!lengths(st_equals_exact(., hybas_inland_valid, par = 0.001, sparse = T)) > 0)
 
-st_write(hybas_inland_valid, "02_PROCESSED_DATA/HYDROLAB_MCGILL/HydroBasins_HUC12_RepairedGeometry_Extract_HUC3_WaterSupply_EPSG3979_UpdatedVariables_Valid.gpkg")
-st_write(hybas_invalid, "02_PROCESSED_DATA/HYDROLAB_MCGILL/HydroBasins_HUC12_RepairedGeometry_Extract_HUC3_WaterSupply_EPSG3979_UpdatedVariables_Invalid.gpkg")
+st_write(hybas_inland_valid,
+         "02_PROCESSED_DATA/HYDROLAB_MCGILL/HydroBasins_HUC12_RepairedGeometry_Extract_HUC3_WaterSupply_EPSG3979_UpdatedVariables_Valid.gpkg",
+         delete_layer = T)
+st_write(hybas_invalid, 
+         "02_PROCESSED_DATA/HYDROLAB_MCGILL/HydroBasins_HUC12_RepairedGeometry_Extract_HUC3_WaterSupply_EPSG3979_UpdatedVariables_Invalid.gpkg",
+         delete_layer = T)

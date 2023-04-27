@@ -27,7 +27,6 @@ setwd("C:/Users/frobinne/Documents/Professional/PROJECTS/39_2021_CANADA_F2F_SOUR
 ## general options -------------------------------------------------------------
 
 options(scipen = 6, digits = 4) # I prefer to view outputs in non-scientific notation
-memory.limit(30000000)     # this is needed on some PCs to increase memory allowance
 
 ## load libraries --------------------------------------------------------------
 
